@@ -411,7 +411,7 @@ refresh_signature() {
 run_strip() {
 	local fs="$1"
 
-	find $fs -type f 2>/dev/null | while read -r binary ; do
+	find "$fs/" -type f 2>/dev/null | while read -r binary ; do
 		case "$(file -bi $binary)" in
 			*application/x-sharedlib*)  # Libraries (.so)
 				${CROSS_COMPILE}strip --strip-unneeded "$binary" ;;
@@ -813,12 +813,6 @@ parse_options() {
 }
 
 main() {
-	# multilib
-	PKGMK_ARCH=64
-	if [ -f ".32bit" ]; then
-		PKGMK_ARCH=32
-	fi
-
 	local FILE TARGET
 
 	parse_options "$@"
@@ -944,7 +938,7 @@ PKGMK_WORK_DIR="$PWD/work"
 PKGMK_COMPRESSION_MODE="xz"
 
 PKGMK_INSTALL="no"
-PKGMK_RECURSIVE="yes"
+PKGMK_RECURSIVE="no"
 PKGMK_DOWNLOAD="yes"
 PKGMK_DOWNLOAD_ONLY="no"
 PKGMK_EXTRACT_ONLY="no"
