@@ -546,6 +546,7 @@ build_package() {
 	local COMPRESSION
 
 	check_file "$TARGET"
+
 	make_work_dir
 
 	if [ "$UID" != "0" ]; then
@@ -777,6 +778,8 @@ parse_options() {
 				PKGMK_CLEAN="yes" ;;
 			-kw|--keep-work)
 				PKGMK_KEEP_WORK="yes" ;;
+			-b|--bootstrap)
+				PKGMK_BOOTSTRAP="yes" ;;
 			-pk|--public-key)
 				if [ ! "$2" ]; then
 					echo "`basename $PKGMK_COMMAND`: option $1 requires an argument"
@@ -904,8 +907,17 @@ main() {
 	if [ "`build_needed`" = "no" ] && [ "$PKGMK_FORCE" = "no" ] && [ "$PKGMK_CHECK_MD5SUM" = "no" ] && [ "$PKGMK_CHECK_SIGNATURE" = "no" ]; then
 		info "Package '$TARGET' is up to date."
 	else
-		download_source
-		build_package
+		if [ "$PKGMK_BOOTSTRAP" = "yes" ]; then
+			if [ "$BOOTSTRAP" = "yes" ]; then
+				download_source
+				build_package
+			else
+				die "This package couldn't be build in cross environment"
+			fi
+		else
+			download_source
+			build_package
+		fi
 	fi
 
 	if [ "$PKGMK_INSTALL" != "no" ]; then
