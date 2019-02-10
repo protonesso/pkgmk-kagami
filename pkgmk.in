@@ -558,7 +558,7 @@ build_package() {
 	unpack_source
 
 	cd $SRC
-	(set -e -x ; build)
+	(set -e ; build)
 
 	if [ $? = 0 ]; then
 		if [ "$PKGMK_NO_STRIP" = "no" ]; then
@@ -568,7 +568,6 @@ build_package() {
 		compress_manpages
 
 		cd $PKG
-		info "Build result:"
 
 		case $PKGMK_COMPRESSION_MODE in
 			gz)  COMPRESSION="-z" ;;
@@ -576,7 +575,7 @@ build_package() {
 			xz)  COMPRESSION="-J" ;;
 			lz)  COMPRESSION="--lzip" ;;
 		esac
-		bsdtar -c $COMPRESSION -f $TARGET *  &&  bsdtar -t -v -f $TARGET
+		bsdtar -c $COMPRESSION -f $TARGET *
 
 		if [ $? = 0 ]; then
 			BUILD_SUCCESSFUL="yes"
