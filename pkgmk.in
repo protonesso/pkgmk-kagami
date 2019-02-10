@@ -108,7 +108,7 @@ check_file() {
 download_file() {
 	info "Downloading '$1'."
 
-	PKGMK_DOWNLOAD_PROG=${PKGMK_DOWNLOAD_PROG:-wget}
+	PKGMK_DOWNLOAD_PROG=${PKGMK_DOWNLOAD_PROG:-curl}
 	if [ ! "`type -p ${PKGMK_DOWNLOAD_PROG}`" ]; then
 		error "Command '${PKGMK_DOWNLOAD_PROG}' not found."
 		exit $E_GENERAL
@@ -408,6 +408,25 @@ refresh_signature() {
 	fi
 }
 
+run_strip() {
+	local fs="$1"
+
+	find $fs -type f 2>/dev/null | while read -r binary ; do
+		case "$(file -bi $binary)" in
+			*application/x-sharedlib*)  # Libraries (.so)
+				${CROSS_COMPILE}strip --strip-unneeded "$binary" ;;
+			*application/x-pie-executable*)  # Libraries (.so)
+				${CROSS_COMPILE}strip --strip-unneeded "$binary" ;;
+			*application/x-archive*)    # Libraries (.a)
+				${CROSS_COMPILE}strip --strip-debug "$binary" ;;
+			*application/x-executable*) # Binaries
+				${CROSS_COMPILE}strip --strip-all "$binary" ;;
+			*)
+				continue ;;
+		esac
+	done
+}
+
 strip_files() {
 	local FILTER
 	local N=$(nproc)
@@ -420,18 +439,20 @@ strip_files() {
 		FILTER="cat"
 	fi
 
-	find . -type f -printf "%P\n" | $FILTER                   \
-		| xargs -r -L10 -P$N                              \
-			file --no-buffer --separator '>'          \
-			-e apptype -e ascii -e encoding -e tokens \
-			-e cdf -e compress -e tar -e text         \
-		| awk '
-			BEGIN { FS = ">[ ]+" }
-			$0 ~ /ELF.*executable.*not stripped/    { print "--strip-all      \"" $1 "\"" }
-			$0 ~ /ELF.*shared object.*not stripped/ { print "--strip-unneeded \"" $1 "\"" }
-			$2 == "current ar archive"              { print "--strip-debug    \"" $1 "\"" }
-			' \
-		| xargs -r -L1 -P$N strip
+	rm -rf {,usr/}{,local/}{,share/}{doc,man,info,locale} usr{,/local}{,/share},opt/*}/{man,info} usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc}
+	rm -rf {,usr/}{,local/}lib/charset.alias
+
+	find . -name "*.la" -print0 | xargs -0 rm -rf
+	find . -name "*.pod" -print0 | xargs -0 rm -rf
+	find . -name ".packlist" -print0 | xargs -0 rm -rf
+
+	if [ "$NO_EMPTY_DIRS" = "1" ]; then
+		find . -type d -empty -print0 | xargs -0 rm -rf
+	fi
+
+	if [ "$NO_RUN_STRIP" != "1" ]; then
+		run_strip "$PKG"
+	fi
 }
 
 compress_manpages() {
@@ -920,24 +941,24 @@ PKGMK_SOURCE_DIR="$PWD"
 PKGMK_PACKAGE_DIR="$PWD"
 PKGMK_WORK_DIR="$PWD/work"
 
-PKGMK_COMPRESSION_MODE="gz"
+PKGMK_COMPRESSION_MODE="xz"
 
 PKGMK_INSTALL="no"
-PKGMK_RECURSIVE="no"
-PKGMK_DOWNLOAD="no"
+PKGMK_RECURSIVE="yes"
+PKGMK_DOWNLOAD="yes"
 PKGMK_DOWNLOAD_ONLY="no"
 PKGMK_EXTRACT_ONLY="no"
 PKGMK_UP_TO_DATE="no"
 PKGMK_UPDATE_FOOTPRINT="no"
-PKGMK_IGNORE_FOOTPRINT="no"
+PKGMK_IGNORE_FOOTPRINT="yes"
 PKGMK_IGNORE_NEW="no"
 PKGMK_FORCE="no"
 PKGMK_KEEP_WORK="no"
 PKGMK_UPDATE_MD5SUM="no"
-PKGMK_IGNORE_MD5SUM="no"
+PKGMK_IGNORE_MD5SUM="yes"
 PKGMK_CHECK_MD5SUM="no"
 PKGMK_UPDATE_SIGNATURE="no"
-PKGMK_IGNORE_SIGNATURE="no"
+PKGMK_IGNORE_SIGNATURE="yes"
 PKGMK_CHECK_SIGNATURE="no"
 PKGMK_REFRESH_SIGNATURE="no"
 PKGMK_PRIVATEKEY=""
