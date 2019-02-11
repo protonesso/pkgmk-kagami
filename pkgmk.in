@@ -911,7 +911,8 @@ main() {
 				download_source
 				build_package
 			else
-				die "This package couldn't be build in cross environment"
+				error "This package couldn't be build in cross environment"
+				exit 1
 			fi
 		else
 			download_source
