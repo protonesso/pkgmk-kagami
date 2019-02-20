@@ -574,6 +574,7 @@ build_package() {
 			bz2) COMPRESSION="-j" ;;
 			xz)  COMPRESSION="-J" ;;
 			lz)  COMPRESSION="--lzip" ;;
+			zst)  COMPRESSION="--zstd" ;;
 		esac
 		bsdtar -c $COMPRESSION -f $TARGET .
 
@@ -947,7 +948,7 @@ PKGMK_SOURCE_DIR="$PWD"
 PKGMK_PACKAGE_DIR="$PWD"
 PKGMK_WORK_DIR="$PWD/work"
 
-PKGMK_COMPRESSION_MODE="xz"
+PKGMK_COMPRESSION_MODE="zst"
 
 PKGMK_INSTALL="no"
 PKGMK_RECURSIVE="no"
