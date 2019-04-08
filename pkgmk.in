@@ -439,7 +439,7 @@ strip_files() {
 		FILTER="cat"
 	fi
 
-	rm -rf {,usr/}{,local/}{,share/}{doc,man,info,locale} usr{,/local}{,/share},opt/*}/{man,info} usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc}
+	rm -rf {,usr/}{,local/}{,share/}{doc,info,locale} usr{,/local}{,/share},opt/*}/{info} usr/{,local/}{,share/}{doc,gtk-doc} opt/*/{doc,gtk-doc}
 	rm -rf {,usr/}{,local/}lib/charset.alias
 
 	find . -name "*.la" -print0 | xargs -0 rm -rf
